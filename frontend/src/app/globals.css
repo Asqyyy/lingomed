@@ -1,0 +1,183 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #1a1a1a;
+  --bg-card: #222;
+  --accent: #ff3838;
+  --accent-2: #ff8c00;
+  --text: #f0f0f0;
+  --text-dim: #999;
+  --radius: 8px;
+  --font-base: 16px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Inter, system-ui, sans-serif;
+  font-size: var(--font-base);
+  min-height: 100vh;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* dr-tirta theme */
+.theme-tirta {
+  --bg: #0a0a0a;
+  --bg-card: #1a1a1a;
+  --accent: #ff3838;
+  --accent-2: #ff8c00;
+  --text: #f0f0f0;
+  --text-dim: #999;
+  --radius: 4px;
+  --font-base: 16px;
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a0505 100%);
+}
+
+/* dr-ghia theme */
+.theme-ghia {
+  --bg: #fff8f3;
+  --bg-card: #ffffff;
+  --accent: #d4a373;
+  --accent-2: #faedcd;
+  --text: #2d2d2d;
+  --text-dim: #777;
+  --radius: 16px;
+  --font-base: 18px;
+  background: linear-gradient(135deg, #fff8f3 0%, #faedcd 100%);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius);
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: transform 0.1s, opacity 0.2s;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--text-dim);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.card {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.input {
+  background: var(--bg-card);
+  color: var(--text);
+  border: 1px solid var(--text-dim);
+  border-radius: var(--radius);
+  padding: 0.75rem 1rem;
+  font-size: var(--font-base);
+  width: 100%;
+  outline: none;
+}
+
+.input:focus {
+  border-color: var(--accent);
+}
+
+.mic-button {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: none;
+  color: #fff;
+  font-size: 2.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.1s, box-shadow 0.2s;
+  box-shadow: 0 0 0 0 var(--accent);
+}
+
+.mic-button.recording {
+  animation: pulse 1.2s infinite;
+  background: #cc0000;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(255, 56, 56, 0.7); }
+  70% { box-shadow: 0 0 0 25px rgba(255, 56, 56, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 56, 56, 0); }
+}
+
+.disclaimer {
+  background: rgba(255, 200, 0, 0.1);
+  border: 1px solid rgba(255, 200, 0, 0.4);
+  color: var(--text);
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.chat-bubble {
+  max-width: 75%;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius);
+  margin: 0.25rem 0;
+  line-height: 1.5;
+  word-wrap: break-word;
+}
+
+.chat-user {
+  background: var(--accent);
+  color: #fff;
+  align-self: flex-end;
+  margin-left: auto;
+}
+
+.chat-assistant {
+  background: var(--bg-card);
+  color: var(--text);
+  align-self: flex-start;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  overflow-y: auto;
+  flex: 1;
+  padding: 1rem;
+}
