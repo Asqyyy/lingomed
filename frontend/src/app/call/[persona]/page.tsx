@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import Disclaimer from "@/components/Disclaimer";
@@ -26,20 +26,25 @@ export default function CallPage() {
   const [currentAssistantText, setCurrentAssistantText] = useState("");
   const [status, setStatus] = useState<"idle" | "connecting" | "ready" | "processing" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
   const wsRef = useRef<WebSocket | null>(null);
   const playerRef = useRef<StreamingMp3Player | null>(null);
   const assistantTextRef = useRef("");
   const currentUserTextRef = useRef("");
+  // Track whether we are intentionally closing (avoids reconnect loop on unmount)
+  const intentionalCloseRef = useRef(false);
 
   useEffect(() => {
     currentUserTextRef.current = currentUserText;
   }, [currentUserText]);
 
-  useEffect(() => {
+  // useCallback so the reconnect closure always has a stable reference
+  const connectWs = useCallback(() => {
+    intentionalCloseRef.current = false;
     setStatus("connecting");
+
     const ws = openVoiceSocket(personaId);
     wsRef.current = ws;
-
     ws.binaryType = "arraybuffer";
 
     ws.onopen = () => {
@@ -48,66 +53,92 @@ export default function CallPage() {
     };
 
     ws.onerror = () => {
+      // onerror is always followed by onclose — let onclose handle retry
       setStatus("error");
-      setErrorMsg("Gagal konek ke server voice. Cek backend & .env.");
     };
 
-    ws.onclose = () => {
-      setStatus("idle");
+    ws.onclose = (ev) => {
+      if (intentionalCloseRef.current) {
+        setStatus("idle");
+        return;
+      }
+      // Unexpected close → show message and retry after 3 s
+      setStatus("error");
+      setErrorMsg(
+        ev.reason
+          ? `Koneksi terputus: ${ev.reason}. Mencoba reconnect...`
+          : "Koneksi terputus. Mencoba reconnect dalam 3 detik..."
+      );
+      setTimeout(() => {
+        if (!intentionalCloseRef.current) connectWs();
+      }, 3000);
     };
 
     ws.onmessage = (ev) => {
+      // Binary frame = MP3 audio chunk
       if (ev.data instanceof ArrayBuffer) {
-        // MP3 chunk
-        if (playerRef.current) {
-          playerRef.current.append(ev.data);
-        }
+        playerRef.current?.append(ev.data);
         return;
       }
+
       try {
-        const msg = JSON.parse(ev.data);
+        const msg = JSON.parse(ev.data as string);
+
         if (msg.type === "transcript") {
           if (msg.is_final && msg.text) {
             setCurrentUserText(msg.text);
+            currentUserTextRef.current = msg.text;
             assistantTextRef.current = "";
             setCurrentAssistantText("");
           }
+
         } else if (msg.type === "llm_chunk") {
           assistantTextRef.current += msg.text;
           setCurrentAssistantText(assistantTextRef.current);
+
         } else if (msg.type === "done") {
           setTurns((prev) => [
             ...prev,
-            { user: currentUserTextRef.current, assistant: msg.text || assistantTextRef.current },
+            {
+              user: currentUserTextRef.current,
+              assistant: msg.text || assistantTextRef.current,
+            },
           ]);
           setCurrentUserText("");
           setCurrentAssistantText("");
           assistantTextRef.current = "";
           setStatus("ready");
+
         } else if (msg.type === "error") {
           setErrorMsg(`[${msg.stage}] ${msg.detail}`);
           setStatus("ready");
         }
-      } catch (e) {
-        // ignore
+      } catch {
+        // Non-JSON text frame — ignore
       }
     };
+  }, [personaId]); // re-create only when persona changes
 
+  // Connect on mount / persona change, clean up on unmount
+  useEffect(() => {
+    connectWs();
     return () => {
-      ws.close();
+      intentionalCloseRef.current = true;
+      wsRef.current?.close(1000);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [personaId]);
+  }, [connectWs]);
 
   const onAudioReady = (blob: Blob) => {
-    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+    const ws = wsRef.current;
+    if (!ws || ws.readyState !== WebSocket.OPEN) {
       setErrorMsg("Belum terkoneksi ke server.");
       return;
     }
     setStatus("processing");
     setErrorMsg(null);
     blob.arrayBuffer().then((buf) => {
-      wsRef.current!.send(buf);
+      ws.send(buf);
+      ws.send(JSON.stringify({ type: "end_of_speech" }));
     });
   };
 
@@ -171,7 +202,7 @@ export default function CallPage() {
             </p>
           )}
           {turns.map((t, i) => (
-            <div key={i} style={{ marginBottom: "1rem" }}>
+            <div key={`turn-${i}`} style={{ marginBottom: "1rem" }}>
               <div className="chat-bubble chat-user">{t.user}</div>
               <div className="chat-bubble chat-assistant" style={{ whiteSpace: "pre-wrap" }}>
                 {t.assistant}
@@ -196,7 +227,7 @@ export default function CallPage() {
           />
         </div>
 
-        <AudioPlayer onReady={(p) => (playerRef.current = p)} />
+        <AudioPlayer onReady={(p) => { playerRef.current = p; }} />
       </div>
     </div>
   );

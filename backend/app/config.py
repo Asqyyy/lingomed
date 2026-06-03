@@ -20,6 +20,17 @@ class Config:
         "DR_GHIA_VOICE_ID",
         "moss_audio_46569d25-5e90-11f1-adb2-f26303c3c234"
     )
+    ALLOWED_ORIGINS = [
+        origin.strip() 
+        for origin in os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(",") 
+        if origin.strip()
+    ]
 
+    @classmethod
+    def validate(cls):
+        if not cls.DEEPGRAM_API_KEY:
+            raise RuntimeError("DEEPGRAM_API_KEY is not set")
+        if not cls.MINIMAX_API_KEY:
+            raise RuntimeError("MINIMAX_API_KEY is not set")
 
 config = Config()

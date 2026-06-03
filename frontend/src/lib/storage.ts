@@ -7,7 +7,11 @@ export function loadHistory(persona: Persona): ChatMessage[] {
   try {
     const raw = localStorage.getItem(KEY(persona));
     if (!raw) return [];
-    return JSON.parse(raw) as ChatMessage[];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter(
+      (m) => typeof m === "object" && m !== null && typeof m.content === "string" && (m.role === "user" || m.role === "assistant")
+    ) as ChatMessage[];
   } catch {
     return [];
   }

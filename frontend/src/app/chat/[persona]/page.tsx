@@ -105,7 +105,7 @@ export default function ChatPage() {
             </p>
           )}
           {messages.map((m, i) => (
-            <ChatMessage key={i} message={m} />
+            <ChatMessage key={`${i}-${m.role}-${m.content.slice(0, 10)}`} message={m} />
           ))}
           <div ref={messagesEndRef} />
         </div>

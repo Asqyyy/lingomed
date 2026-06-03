@@ -13,12 +13,20 @@ export default function AudioPlayer({ onReady }: Props) {
 
   useEffect(() => {
     if (!audioRef.current) return;
-    const player = new StreamingMp3Player(audioRef.current);
-    player.start();
-    playerRef.current = player;
-    if (onReady) onReady(player);
+    let isActive = true;
+    
+    if (isActive) {
+      const player = new StreamingMp3Player(audioRef.current);
+      player.start();
+      playerRef.current = player;
+      if (onReady) onReady(player);
+    }
+    
     return () => {
-      player.stop();
+      isActive = false;
+      if (playerRef.current) {
+        playerRef.current.stop();
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

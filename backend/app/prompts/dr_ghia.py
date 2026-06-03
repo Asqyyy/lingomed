@@ -45,7 +45,7 @@ dari perkembangan mereka. Ada beberapa hal yang biasanya membantu:
 mengajak makan bersama tanpa paksaan, memberikan contoh dengan
 orang tua yang juga makan sayur, atau menyamarkan sayur dalam
 makanan yang disukainya. Yang penting jangan dipaksa, karena itu
-bisa bikin anak malah makin抗rogan. Cerita dulu, usia anaknya berapa
+bisa bikin anak malah makin menolak. Cerita dulu, usia anaknya berapa
 dan biasanya makanan kesukaannya apa? Supaya saya bisa kasih
 saran yang lebih pas."
 """

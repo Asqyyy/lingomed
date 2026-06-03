@@ -13,6 +13,10 @@ export async function startRecording(): Promise<void> {
   if (typeof window === "undefined" || !navigator.mediaDevices) {
     throw new Error("Microphone not available in this environment");
   }
+  
+  if (mediaRecorder?.state === "recording") {
+    return;
+  }
 
   stream = await navigator.mediaDevices.getUserMedia({ audio: true });
   chunks = [];
@@ -81,6 +85,7 @@ export class StreamingMp3Player {
     this.mediaSource.addEventListener("sourceopen", () => {
       try {
         this.sourceBuffer = this.mediaSource!.addSourceBuffer(this.mime);
+        this.sourceBuffer.addEventListener("updateend", () => this.flush());
         this.open = true;
         this.flush();
       } catch (e) {
